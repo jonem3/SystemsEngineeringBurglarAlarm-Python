@@ -2,6 +2,7 @@ import atexit
 import csv
 import datetime
 from os.path import exists
+import uuid
 
 import cv2
 import os
@@ -87,6 +88,7 @@ class FacialRecognition:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     cv2.putText(img, (self.face_ids[label] + " " + str(round(conf, 2))), (f[1][0], f[1][1] - 5),
                                 cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+                    recognised_face = self.face_ids[label]
                 else:
                     (x, y, w, h) = f[1]
                     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -107,7 +109,8 @@ class FacialRecognition:
                 print("\nThat was not an available option")
         if bio_consent:
             new_folder_name = "s" + str(len(self.face_ids))
-            new_id = input("\nEnter the name of the person being added: ")
+            # new_id = input("\nEnter the name of the person being added: ")
+            new_id = uuid.uuid4()
             self.face_ids.append(new_id)
             os.mkdir(self.data_folder + "/" + new_folder_name)
             for i in range(1, 25):
@@ -149,13 +152,16 @@ class FacialRecognition:
         start_time = datetime.datetime.now()
         elapsed_time = 0
         while len(self.available_faces) == 0 and elapsed_time < 30:
-            self.detect_faces()
+            person = self.detect_faces()
             elapsed_time = (datetime.datetime.now() - start_time).seconds
         cv2.destroyAllWindows()
-        if len(self.available_faces) != 0:
-            print("Success")
+        if person is not None:
+            # print(self.available_faces)
+            print(str(person).upper(), "RECOGNISED")
+            return True
         else:
             print("\nNo one recognised")
+            return False
 
     def exit_handler(self):
         with open('IDS.csv', 'w', newline='') as csvfile:
