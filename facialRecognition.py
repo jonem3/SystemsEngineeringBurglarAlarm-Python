@@ -110,7 +110,7 @@ class FacialRecognition:
         if bio_consent:
             new_folder_name = "s" + str(len(self.face_ids))
             # new_id = input("\nEnter the name of the person being added: ")
-            new_id = uuid.uuid4()
+            new_id = str(uuid.uuid4())
             self.face_ids.append(new_id)
             os.mkdir(self.data_folder + "/" + new_folder_name)
             for i in range(1, 25):
@@ -138,23 +138,24 @@ class FacialRecognition:
             else:
                 print("That was not an available option")
 
-    def detect_faces(self):
-        webcam = cv2.VideoCapture(0)
+    def detect_faces(self, webcam):
         check, frame = webcam.read()
         predicted_img, recog_person = self.classify(frame)
         cv2.imshow("FEED", predicted_img)
         cv2.waitKey(1)
-        webcam.release()
+
         return recog_person
 
     def run_facial_recognition(self):
         self.available_faces = []
         start_time = datetime.datetime.now()
         elapsed_time = 0
+        webcam = cv2.VideoCapture(0)
         while len(self.available_faces) == 0 and elapsed_time < 30:
-            person = self.detect_faces()
+            person = self.detect_faces(webcam)
             elapsed_time = (datetime.datetime.now() - start_time).seconds
         cv2.destroyAllWindows()
+        webcam.release()
         if person is not None:
             # print(self.available_faces)
             print(str(person).upper(), "RECOGNISED")

@@ -48,6 +48,7 @@ class Communication:
                                 found = True
                             else:
                                 self.serial_connection.close()
+                                print(response)
                                 print("NOT SAME")
                     except serial.serialutil.SerialException:
                         print("ACCESS DENIED")

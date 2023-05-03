@@ -1,8 +1,11 @@
 import datetime
+import json
+import threading
 import time
 from facialRecognition import FacialRecognition
 from communication import Communication
 from pinEntry import PinEntry
+from savePin import SavePin
 
 
 def test_facial_recog():
@@ -10,51 +13,33 @@ def test_facial_recog():
     faces.run_facial_recognition()
 
 
-def polling_active(comms):
-    comms.send_message("PO CONFIRM")
-    polling = True
-    print("SYSTEM ACTIVATED: YOU HAVE 5 SECONDS TO EXIT THE PREMISES")
-    lastEvent = datetime.datetime.now()
-    while polling:
-        arduinoCommand = comms.get_message()
-        if arduinoCommand == "PIR TRIGGERED":
-            print("MOVEMENT DETECTED")
-            comms.send_message("ST CONFIRM")
-            lastEvent = datetime.datetime.now()
-        elif arduinoCommand == "DOOR TRIGGERED":
-            print("DOOR HAS BEEN OPENED")
-            comms.send_message("ST CONFIRM")
-            lastEvent = datetime.datetime.now()
-        elif arduinoCommand == "PIN REQUIRED":
-            pass  # Enter Pin
-        elif arduinoCommand == "PD":
-            polling = False
-            comms.send_message("PD CONFIRM")
-        elif arduinoCommand == "AA":
-            polling = False
-            pass  # Trigger Alarm
-        elif (datetime.datetime.now() - lastEvent).seconds >= 5:
-            lastEvent = datetime.datetime.now()
-            print("NO SENSOR DETECTION")
+def pin_entry(comms):
+    pin = PinEntry(comms)
+    receivemessages = threading.Thread(target=pin.receive_pin, args=())
+    receivemessages.start()
+    pin.run()
+    receivemessages.join()
+    pin.root.destroy()
 
-def comms_handler(comms, face_recogniser):
-    while True:
-        arduinoCommand = comms.get_message()
-        if arduinoCommand == "AM":
-            # menu()
-            pass
-        elif arduinoCommand == "FR":
-            face_recognised = face_recogniser.run_facial_recognition()
+    return pin.passwordCorrect
 
+
+def save_pin(comms, face_recogniser):
+    pin_state = pin_entry(comms)
+    print(pin_state)
+    if pin_state:
+        if face_recogniser.run_facial_recognition():
+            SavePin(comms)
+        else:
+            data = {"verification": "failure"}
+            comms.send_message(json.dumps(data))
 
 
 def __main__():
-    pin = PinEntry()
-    pin.run()
     face_recogniser = FacialRecognition()
     comms = Communication(115200)
-    comms.send_message("COMPLETE")
-    comms.get_message()
+    # savepin = SavePin(comms)
+    save_pin(comms, face_recogniser)
 
 
 if __name__ == "__main__":
