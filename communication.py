@@ -11,6 +11,8 @@ class Communication:
     def __init__(self, baud_rate):
         self.handshake(baud_rate)
 
+    def clear_buffer(self):
+        self.serial_connection.flush()
     def get_message(self):
         message = self.serial_connection.readline().decode("utf-8").rstrip()
         return message

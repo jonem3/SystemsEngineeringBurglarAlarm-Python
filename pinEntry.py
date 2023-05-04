@@ -6,7 +6,7 @@ import json
 
 
 def callback(P):
-    if str.isdigit(P) or P == "":
+    if str.isdigit(P) or len(P) <= 4:
         return True
     else:
         return False
@@ -69,7 +69,11 @@ class PinEntry:
 
     def receive_pin(self):
         while not self.passwordCorrect:
-            data = json.loads(self.communication.get_message())
+            try:
+                data = json.loads(self.communication.get_message())
+                print(data)
+            except:
+                continue
             if 'message' in data:
                 if data['message'] == "OUT OF ATTEMPTS":
                     self.passwordCorrect = False

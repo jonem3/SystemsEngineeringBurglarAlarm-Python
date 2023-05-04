@@ -6,11 +6,10 @@ from tkinter import ttk
 
 
 def callback(P):
-    if str.isdigit(P) or P == "":
+    if str.isdigit(P) or len(P) <= 4:
         return True
     else:
         return False
-
 
 class SavePin:
     root = None

@@ -7,6 +7,7 @@ import uuid
 import cv2
 import os
 import numpy as np
+from gdpr_warning import GdprWarning
 
 """
 Interface:
@@ -98,15 +99,12 @@ class FacialRecognition:
         webcam = cv2.VideoCapture(0)
         bio_consent = False
         while not bio_consent:
-            usr_consent = input(self.gdpr_warning).lower()
-            if usr_consent == "y":
-                print("\nConsent Acknowledged")
+            gdpr = GdprWarning()
+            usr_consent = gdpr.gdprOutcome
+            if usr_consent:
                 bio_consent = True
-            elif usr_consent == "n":
-                print("\nAlarm Shutting Down")
+            elif not usr_consent:
                 break
-            else:
-                print("\nThat was not an available option")
         if bio_consent:
             new_folder_name = "s" + str(len(self.face_ids))
             # new_id = input("\nEnter the name of the person being added: ")
