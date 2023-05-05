@@ -8,6 +8,7 @@ from pinEntry import PinEntry
 from savePin import SavePin
 from menu import Menu
 from gdpr_warning import GdprWarning
+from theProdigalProgramReturns import AlarmState
 
 
 def test_facial_recog():
@@ -36,6 +37,17 @@ def save_pin(comms, face_recogniser):
             data = {"verification": "failure"}
             comms.send_message(json.dumps(data))
 
+def runAlarm(comms):
+    alarmRunning = True
+    alarmScreen = AlarmState(comms)
+    while alarmRunning:
+        receievemessages = threading.Thread(target=alarmScreen.update_alarm_state, args=())
+        receievemessages.start()
+        alarmScreen.run()
+        receievemessages.join()
+        alarmRunning = pin_entry(comms)
+
+
 
 def __main__():
     face_recogniser = FacialRecognition()
@@ -47,6 +59,8 @@ def __main__():
             face_recogniser.add_face()
         elif main_menu.changeUsrPin:
             save_pin(comms, face_recogniser)
+        elif main_menu.beginAlarm:
+
         elif main_menu.exitState:
             exit(0)
 
